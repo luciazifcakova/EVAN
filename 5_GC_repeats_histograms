@@ -1,0 +1,77 @@
+from glob import glob
+import jenkspy
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import multiprocessing
+from natsort import natsorted
+import numpy as np
+import os
+import pandas as pd
+import snoop
+import copy
+from matplotlib import colors
+from matplotlib.ticker import PercentFormatter
+import pickle
+from math import ceil
+from collections import OrderedDict
+from PIL import Image
+from glob import glob
+import ckmeans
+
+where_i_am = '/my_path/to/data/' # replace with your path
+
+n_bins=100
+all_data={}
+all_breaks={}
+
+work_items={'Group_name': [['organism name',
+   '/path/to/output/files_per_windows_1000.csv']]}
+
+work_items = {'Group_name':[['organism name1',f'{where_i_am}Group_name/path/to/output/files_per_windows_1000.csv'],
+                          ['organism name2',f'{where_i_am}Group_name/Spath/to/output/files_per_windows_1000.csv']]}
+
+import matplotlib.pyplot as plt
+import numpy as np
+
+from matplotlib import colors
+from matplotlib.ticker import PercentFormatter
+n_bins = 150
+
+path_to_histogram = f'{where_i_am}/histograms_of_all/'
+try:
+    os.mkdir(f'{where_i_am}histograms_of_all/')
+except OSError as error:
+    pass
+
+for k,v in work_items.items():
+    for organism in v:     
+        try:
+            df_my_csv = pd.read_csv(f'{organism[1]}')            
+            df_my_csv['GC proc'] = pd.to_numeric(df_my_csv['GC proc'])
+            try:
+                df_my_csv['gc proc'] = pd.to_numeric(df_my_csv['gc proc'])
+            except ValueError:
+                df_my_csv['gc proc'] = 0.0
+            # Generate two normal distributions           
+            
+            # Create histogram for data1
+            plt.hist(df_my_csv['GC proc']*100, bins=n_bins, density=False, color='blue', edgecolor='DarkBlue', alpha=0.3, label='GC%',range=[20,60])
+
+            # Create histogram for data2
+            plt.hist(df_my_csv['gc proc']*100,  bins=n_bins, density=False, color='red', edgecolor='DarkRed', alpha=0.3, label='gc%',range=[20,60])
+            
+            # Set labels and title
+            plt.xlabel('gc%')
+            plt.ylabel('Number of Occurrences')
+            plt.legend()
+            plt.grid(True)
+            plt.title(f'{k} {organism[0]}', fontsize=18)
+            plt.savefig(f'{where_i_am}histograms_of_all/{organism[0]}_hist.svg', format="svg")
+            plt.show()
+            
+        except FileNotFoundError:
+            print('not found',organism[1])
+            pass
+               
+                                         
+
