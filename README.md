@@ -2,10 +2,8 @@
 EVAN tool for imaging GC heterogeneity in genomes
 
 ![EvanLogo.gif](https://github.com/martavohnoutova/Evan_Octopus/blob/main/Evan%20logo2.png)
-# Evan_Octopus
-New version of Evan for species e.g. cephalopods
 
-Python based tool can create GuanineCytosine percentage distribution plots across soft-masked genomes in chromosomal resolutions. Prior runing EVAN, please, soft-mask your genomes using RepeatMasker (see more info in https://github.com/luciazifcakova/scripts_for_paper_Regional_distribution_GC_content). The output files are figures created separately for each chromosome, showing genomic coordinates on X axis and percentage of GC% on Y axis as a function of masked(repetitive)/unmasked(coding) proportions of genomic region. Additional output files show the plot of average GC% of each chromosome as a function of masked/unmasked proportions. Output csv files contains data about rep% (% of repetitive sequences), gc% (GC% of masked/repetitive sequences) and GC% (% of unmasked(coding) sequences). The tool consists of 4 configurable Jupyter programs and can operate on many samples together in cycle.
+Python based tool can create Guanine Cytosine percentage distribution plots across soft-masked genomes in chromosomal resolutions. Prior runing EVAN, please, soft-mask your genomes using RepeatMasker (see more info in https://github.com/luciazifcakova/scripts_for_paper_Regional_distribution_GC_content). The output files are figures created separately for each chromosome, showing genomic coordinates on X axis and percentage of GC% on Y axis as a function of masked(repetitive)/unmasked(coding) proportions of genomic region. Additional output files show the plot of average GC% of each chromosome as a function of masked/unmasked proportions. Output csv files contains data about rep% (% of repetitive sequences), gc% (GC% of masked/repetitive sequences) and GC% (% of unmasked(coding) sequences). The tool consists of 4 configurable Jupyter programs and can operate on many samples together in cycle.
 
 You can run Jypyter notebook scripts as described in individuall script files (e.g.: 1_GC_repeats_profile_PLOS_TRAINING_universal_v.0.2.ipynb etc.)
 
