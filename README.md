@@ -1,5 +1,5 @@
 # EVAN
-EVAN tool for imaging GC heterogeneity in genomes
+EVAN tool for imaging GC heterogeneity in genomes. Written by Marta Vohnoutova and Lucia Zifcakova.
 
 ![EvanLogo.gif](https://github.com/martavohnoutova/Evan_Octopus/blob/main/Evan%20logo2.png)
 
