@@ -1,1 +1,171 @@
-import agrparse
+from Bio import SeqIO
+from Bio.SeqUtils import gc_fraction
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter, StrMethodFormatter
+from matplotlib import font_manager
+
+import pandas as pd
+import numpy as np
+import os
+import csv
+from collections import OrderedDict
+from PIL import Image
+from glob import glob
+import pickle
+
+# read what_to_operate from pickle
+
+file = open("/path/to-your/pickle_file.pkl",'rb')
+what_to_operate = pickle.load(file)
+file.close()
+
+where_i_am = '/path/to-your/' # replace with your path
+column_name = 'GC DNA' # replace with your column name
+
+for my_fasta in what_to_operate:
+    try:
+        os.mkdir(f'{where_i_am}{my_fasta[4]}/{my_fasta[1]}')
+    except OSError as error:
+        pass
+
+def how_many(my_seq,string):
+    my_sum=0
+    for base in string:
+        my_sum += my_seq.count(base)
+    return my_sum
+
+plt.rcParams["figure.figsize"] = [20.00, 20.00]
+
+for my_fasta_file in what_to_operate:  #highest level
+    for my_window in my_fasta_file[2]:
+        print(my_fasta_file[0],my_window)
+        sec_values = '' # replace with your release number
+        c=[]
+
+        GC_chromosoms=OrderedDict()
+        chomosome_no=0
+
+        gc_values=tuple()
+
+        d_sec_values = dict()
+
+        lengths=[]
+       
+        for rec in SeqIO.parse(f"{my_fasta_file[0]}", "fasta"):  # this cycle for max_len only
+            if eval(my_fasta_file[3]):
+                lengths.append(len(rec.seq))
+                
+        max_len=max(lengths)
+
+        for rec in SeqIO.parse(f"{my_fasta_file[0]}", "fasta"): 
+            GC_chromosoms_windowed={}  # per chromosome
+            if eval(my_fasta_file[3]):  # chromosomes only
+        
+                # count GC values via sliding windows
+                c.append(rec.id)
+                sec_values += rec.seq
+                if len(sec_values) >= 10*my_window:
+                    gc_values = gc_values + tuple(gc_fraction(sec_values[i:i+my_window]) for i in range(0,len(sec_values),my_window)) # replace with your release number
+                    sec_values = ''
+        
+                # chromosomes
+                soft_mask= how_many(rec.seq,'acgt')
+                ALL_all=how_many(rec.seq,'acgtACGT')
+                GC_fraction=gc_fraction(rec.seq)
+                chomosome_no += 1
+                try:
+                    GC_chromosoms[str(chomosome_no) + '+' + rec.id]=((GC_fraction,soft_mask/ALL_all),len(rec.seq))  # we distract N and n   
+                except ZeroDivisionError:
+                    GC_chromosoms[str(chomosome_no)+'+'+ rec.id]=((GC_fraction,0.0), len(rec.seq)) # distract N and n
+        
+                # count bases
+                for base in 'acgtACGTNn':
+                    if base in d_sec_values:
+                        d_sec_values[base] += rec.seq.count(base)
+                    else:
+                        d_sec_values[base] = rec.seq.count(base)
+
+                # max length
+                #lengths.append(len(rec.seq))
+                
+                # graphs
+                for w in range(0,len(rec.seq),my_window):
+              
+                    #print(range(i,i+window),len(gc_values_94[i:i+window]))
+                    soft_mask= rec.seq[w:w+my_window].count('a') + rec.seq[w:w+my_window].count('t') + rec.seq[w:w+my_window].count('c') + rec.seq[w:w+my_window].count('g') 
+                    ALL_all=soft_mask + rec.seq[w:w+my_window].count('A') + rec.seq[w:w+my_window].count('T') + rec.seq[w:w+my_window].count('C') + rec.seq[w:w+my_window].count('G')
+                    GC_fraction=gc_fraction(rec.seq[w:w+my_window])
+            
+                    try:
+                        GC_chromosoms_windowed[str(w)+'|'+ rec.id]=(GC_fraction,soft_mask/ALL_all)  # distract N and n    
+                        #print(range(i,i+window),len(gc_values_94[i:i+window])) 
+                    except ZeroDivisionError:
+                        GC_chromosoms_windowed[str(w)+'|'+ rec.id]=(GC_fraction,0.0)  # distract N and n
+                        
+                # adjusted chromosome density
+                #print(rec.id)                
+            
+                
+                with open(f'{where_i_am}{my_fasta_file[4]}/{my_fasta_file[1]}/{my_fasta_file[1]}_profile_soft_unmask_{rec.id}.csv','w') as f: # replace the animal name and release no.
+                    csv_file = csv.writer(f)
+                    csv_file.writerows(GC_chromosoms_windowed.items())
+               
+               
+        columns_dna = [column_name] # replace with your name e.g. release number - default GC_DNA
+        gc_df_dna = pd.DataFrame(gc_values, columns = columns_dna) # replace with your release number
+
+        #all_images = sorted([os.path.basename(f) for f in glob(f"{where_i_am}{my_fasta_file[1]}/*profile*.png")],key=lambda x: int(x.split('_')[-1].split('.')[0]))
+
+        GC_chromosoms = OrderedDict(sorted(GC_chromosoms.items(), key=lambda x: x[1][1],reverse=True))
+
+        #max_len=max(lengths)
+    
+        gc_df_dna.to_csv(f'{where_i_am}{my_fasta_file[4]}/{my_fasta_file[1]}/{my_fasta_file[1]}_per_windows_{my_window}.csv')
+    
+        #GC_chromosoms # replace with your release number
+    
+        with open(f'{where_i_am}{my_fasta_file[4]}/{my_fasta_file[1]}/{my_fasta_file[1]}_chrom_GCproc_rep_MBP.csv','w') as f:  # name csv file as you wish 
+            f.write('Chom.no. , Chom.name , GCproc , Rep , MBP\n')
+            for k,v in GC_chromosoms.items():
+                f.write(f'{k.split("+")[0]},{k.split("+")[1]},{v[0][0]*100:.2f},{v[0][1]*100:.2f},{v[1]/1000000:.2f}\n')
+                
+        # scattered graphs - color by value, no display
+        
+        # d sec values
+        with open(f'{where_i_am}{my_fasta_file[4]}/{my_fasta_file[1]}/{my_fasta_file[1]}_{my_window}.csv','w') as f:  # name csv file as you wish 
+            for k,v in d_sec_values.items():
+                f.write(f'{k},{v}\n')
+                
+        # results % GC
+        #print(f'%GC release 94 is {gc_94_all}, %GC release 108 is {gc_108_all}, %GC rel.94 / %GC rel 108 is {gc_94_all/gc_108_all}')
+        #gc_all = gc_fraction(sec_values)
+        gc_all = (d_sec_values['c']+d_sec_values['g']+d_sec_values['C']+d_sec_values['G'])/(d_sec_values['c']+d_sec_values['g']+d_sec_values['C']+d_sec_values['G'] +  d_sec_values['a']+d_sec_values['t']+d_sec_values['A']+d_sec_values['T'])
+        print(f'%GC of {my_fasta_file[1]} is {gc_all}')
+       
+            
+        #  Soft vs Unmasked
+        # GC to ATGC, gc to atgc
+        GC_to_ATGC={}
+        atgc_lower= d_sec_values['a'] + d_sec_values['t'] + d_sec_values['c']  + d_sec_values['g']  # 'atgc'
+        gc_lower=d_sec_values['c']  + d_sec_values['g'] # cg
+        atgc_upper=d_sec_values['A'] + d_sec_values['T'] + d_sec_values['C']  + d_sec_values['G'] # ATCG
+        gc_upper=d_sec_values['C']  + d_sec_values['G'] # CG
+        
+        try:
+            GC_to_ATGC['lower']=gc_lower/atgc_lower  # distract N and n
+        except ZeroDivisionError:
+            GC_to_ATGC['lower']=0.0
+        try:    
+            GC_to_ATGC['upper']=gc_upper/atgc_upper  # distract N and n
+        except ZeroDivisionError:
+            GC_to_ATGC['repeat%']=0.0
+        
+        GC_to_ATGC.items()
+        
+        
+        with open(f'{where_i_am}{my_fasta_file[4]}/{my_fasta_file[1]}/{my_fasta_file[1]}_GCtotal_lower_upper_repeat.csv','w') as f:  # name csv file as you wish
+            f.write(f'GC Total , {gc_all*100:.2f}\n')
+            for k,v in GC_to_ATGC.items():
+                f.write(f'{k},{v*100:.2f}\n')
