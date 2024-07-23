@@ -1,3 +1,35 @@
+from Bio import SeqIO
+from Bio.SeqUtils import gc_fraction
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+from matplotlib.colors import ListedColormap
+from matplotlib.ticker import FormatStrFormatter, StrMethodFormatter
+from matplotlib.ticker import MaxNLocator
+from matplotlib import font_manager, cm
+plt.rcParams["figure.figsize"] = [20.00, 20.00]
+import pandas as pd
+import numpy as np
+import os
+import csv
+from collections import OrderedDict
+from PIL import Image
+from glob import glob
+import pickle
+
+
+file = open("/path/to-your/pickle_file.pkl",'rb')
+what_to_operate = pickle.load(file)
+file.close()
+
+where_i_am = '/path/to-your/' # replace with your path
+column_name = 'GC DNA' # replace with your column name
+
+def how_many(my_seq,string):
+    my_sum=0
+    for base in string:
+        my_sum += my_seq.count(base)
+    return my_sum
 
 # Constants for graph
 column_name = 'GC DNA' # replace with your column name
