@@ -1,0 +1,59 @@
+#!/bin/bash
+#SBATCH --job-name=EVAN_trial
+#SBATCH --partition= #your_partition
+#SBATCH --time=1-0
+#SBATCH --mem-per-cpu=10G
+#SBATCH --cpus-per-task=20
+#SBATCH --mail-user= #your_email
+#SBATCH --mail-type=BEGIN,FAIL,END
+#SBATCH --array=0-25
+#SBATCH --output=logs/EVAN_trial_%A-%a.out
+#SBATCH --error=logs/EVAN_trial_%A-%a.err
+
+set -euo pipefail
+mkdir -p logs
+
+# ---- input files (26 FASTAs expected) ----
+files=(#your_data_location/*.fa)
+
+# guard against array overrun
+if (( SLURM_ARRAY_TASK_ID >= ${#files[@]} )); then
+  echo "No input for index ${SLURM_ARRAY_TASK_ID} (found ${#files[@]} FASTAs)."
+  exit 0
+fi
+
+file="${files[$SLURM_ARRAY_TASK_ID]}"
+# species label from filename (adjust suffix if needed)
+out="$(basename -s #_your_basename.fa "$file")"
+
+# ---- choose a writable base: /flash/MillerU or current dir ----
+if [[ -w #place_of_workdir ]]; then
+  OUT_BASE="#place_of_workdir"
+else
+  OUT_BASE="$PWD"
+fi
+
+# per-task working directory to avoid collisions
+WORKDIR="${OUT_BASE}/EVAN_trial/${SLURM_JOB_ID:-$$}_${SLURM_ARRAY_TASK_ID}_${out}"
+mkdir -p "$WORKDIR"
+
+# symlink the input FASTA into the writable workdir so EVAN1.py writes there
+ln -sf "$file" "$WORKDIR/$(basename "$file")"
+PY_FASTA="$WORKDIR/$(basename "$file")"
+
+echo "Input FASTA : $file"
+echo "Species     : $out"
+echo "Work dir    : $WORKDIR"
+
+# ---- modules ----
+ml bioinfo-ugrp-modules
+ml DebianMed
+
+# ---- run ----
+python EVAN1.py "$PY_FASTA" "$out" 1000
+
+
+
+
+
+
