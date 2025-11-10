@@ -10,6 +10,7 @@
 #SBATCH --output=logs/EVAN_trial_%A-%a.out
 #SBATCH --error=logs/EVAN_trial_%A-%a.err
 
+
 set -euo pipefail
 mkdir -p logs
 
@@ -50,7 +51,7 @@ ml bioinfo-ugrp-modules
 ml DebianMed
 
 # ---- run ----
-python EVAN1.py "$PY_FASTA" "$out" 1000
+python GC_percentage_masked_unmasked_in_genome.py "$PY_FASTA" "$out" 1000
 
 
 
